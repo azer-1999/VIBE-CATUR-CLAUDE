@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f1d1a">
+  <title>Catur Mabar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== LOBI ===================== -->
+  <main id="lobby" class="lobby">
+    <div class="lobby-card">
+      <h1>Catur Mabar</h1>
+      <p class="muted">Main catur realtime dengan teman. Buat room, lalu bagikan kodenya.</p>
+
+      <div class="field">
+        <label for="name">Nama panggilan</label>
+        <input id="name" maxlength="20" placeholder="mis. Budi" autocomplete="nickname">
+      </div>
+
+      <section class="block" aria-labelledby="h-create">
+        <h2 id="h-create">Buat Room Baru</h2>
+        <div class="row">
+          <div class="field">
+            <label for="minutes">Waktu per pemain</label>
+            <select id="minutes">
+              <option value="1">1 menit</option>
+              <option value="3">3 menit</option>
+              <option value="5">5 menit</option>
+              <option value="10" selected>10 menit</option>
+              <option value="15">15 menit</option>
+              <option value="30">30 menit</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="increment">Tambahan per langkah</label>
+            <select id="increment">
+              <option value="0" selected>Tanpa tambahan</option>
+              <option value="1">+1 detik</option>
+              <option value="2">+2 detik</option>
+              <option value="3">+3 detik</option>
+              <option value="5">+5 detik</option>
+              <option value="10">+10 detik</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-create" class="btn primary" type="button">Buat Room</button>
+      </section>
+
+      <div class="or"><span>atau</span></div>
+
+      <section class="block" aria-labelledby="h-join">
+        <h2 id="h-join">Masuk ke Room</h2>
+        <form id="join-form" class="row join-row">
+          <input id="code" maxlength="5" placeholder="KODE" autocomplete="off" autocapitalize="characters"
+                 spellcheck="false" aria-label="Kode room">
+          <button class="btn" type="submit">Masuk</button>
+        </form>
+        <p class="muted small">Jika room sudah berisi dua pemain, Anda masuk sebagai penonton.</p>
+      </section>
+
+      <p id="lobby-error" class="error" role="alert"></p>
+      <p id="conn" class="muted small">Menghubungkan ke server…</p>
+    </div>
+  </main>
+
+  <!-- ===================== PERMAINAN ===================== -->
+  <main id="game" class="game" hidden>
+
+    <section class="boardcol">
+      <!-- Pemain atas (lawan, atau Hitam bila Anda penonton) -->
+      <div class="pbar" id="bar-top">
+        <span class="chip"></span>
+        <span class="pname"></span>
+        <span class="pflag"></span>
+        <span class="clock">10:00</span>
+      </div>
+
+      <div class="boardwrap">
+        <div class="board" id="board" aria-label="Papan catur"></div>
+
+        <!-- Kartu hasil permainan di atas papan -->
+        <div class="overlay" id="result" hidden>
+          <div class="result-card">
+            <h3 id="result-title"></h3>
+            <p id="result-text"></p>
+            <div class="row">
+              <button id="res-rematch" class="btn primary" type="button">Rematch</button>
+              <button id="res-close" class="btn" type="button">Lihat papan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pemain bawah (Anda) -->
+      <div class="pbar" id="bar-bottom">
+        <span class="chip"></span>
+        <span class="pname"></span>
+        <span class="pflag"></span>
+        <span class="clock">10:00</span>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="card info">
+        <div class="banner" id="banner"></div>
+        <dl>
+          <dt>Kode Room</dt>
+          <dd><strong class="code" id="info-code"></strong> <button id="btn-copy" class="btn small" type="button">Salin tautan</button></dd>
+          <dt>Peran Anda</dt>
+          <dd id="info-role"></dd>
+          <dt>Giliran</dt>
+          <dd id="info-turn"></dd>
+          <dt>Status</dt>
+          <dd id="info-status"></dd>
+          <dt>Penonton</dt>
+          <dd id="info-spec"></dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <h3>Langkah</h3>
+        <ol id="moves" class="moves" aria-live="polite"></ol>
+      </div>
+
+      <div class="card actions">
+        <div id="draw-prompt" class="draw-prompt" hidden>
+          <span>Lawan menawarkan remis.</span>
+          <div class="row">
+            <button id="btn-draw-yes" class="btn primary small" type="button">Terima</button>
+            <button id="btn-draw-no" class="btn small" type="button">Tolak</button>
+          </div>
+        </div>
+        <div class="row wrap">
+          <button id="btn-draw" class="btn" type="button">Tawar Remis</button>
+          <button id="btn-resign" class="btn danger" type="button">Menyerah</button>
+          <button id="btn-rematch" class="btn primary" type="button" hidden>Rematch</button>
+          <button id="btn-leave" class="btn" type="button">Keluar</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Pilihan promosi pion -->
+  <div class="overlay modal" id="promo" hidden>
+    <div class="result-card">
+      <h3>Promosi pion</h3>
+      <div class="promo-choices" id="promo-choices"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Klien Socket.io disajikan otomatis oleh server -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
